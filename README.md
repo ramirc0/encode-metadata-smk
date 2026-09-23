@@ -46,6 +46,15 @@ uv run snakemake --profile profiles/local all_reports              # Parquets on
 
 ## Pipeline
 
+`docs/pipeline-rulegraph.png` shows the rules and `docs/pipeline-dag.png` the concrete jobs of a
+default run. Both are Graphviz renderings of Snakemake's own DAG, so they cannot drift from the
+workflow. Regenerate with:
+
+```sh
+uv run snakemake --profile profiles/local --rulegraph | dot -Tpng -o docs/pipeline-rulegraph.png
+uv run snakemake --profile profiles/local --dag       | dot -Tpng -o docs/pipeline-dag.png
+```
+
 ```
 config/reports.tsv        report_id + URL, one row per ENCODE object type
       |
