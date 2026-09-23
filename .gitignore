@@ -1,6 +1,17 @@
+logs
+results
+benchmarks
+.snakemake
+.conda
+# copy from config.yaml.template, then edit
+config/config.yaml
+config/*.tsv
+!config/reports.tsv
+
 scratch
 resources
 output
+_archive
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

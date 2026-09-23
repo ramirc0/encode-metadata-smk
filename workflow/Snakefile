@@ -1,0 +1,22 @@
+
+include: "rules/common.smk"
+include: "rules/fetch.smk"
+include: "rules/annotate.smk"
+include: "rules/report.smk"
+
+
+rule all:
+    input:
+        f"{OUTDIR}/report/summary.png",
+        f"{OUTDIR}/report/tarball_manifest.tsv",
+        f"{OUTDIR}/report/provenance.tsv",
+        expand(
+            f"{OUTDIR}/annotations/{{model}}-model-annotations.tsv", model=MODELS
+        ),
+
+
+# Opt-in: every report in the sheet converted to Parquet, not just the three
+# the annotation tables need. Equivalent to `fetch: all` in config.
+rule all_reports:
+    input:
+        expand(f"{OUTDIR}/parquets/{{report}}.parquet", report=REPORTS),

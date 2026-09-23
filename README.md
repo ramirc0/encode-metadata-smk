@@ -1,94 +1,105 @@
 # encode-metadata
 
-Pipelines for turning [ENCODE](https://www.encodeproject.org/) metadata reports into Parquet
-tables and deriving BPNet / ChromBPNet model-annotation tables and download manifests. The work is
-organized as [marimo](https://marimo.io/) notebooks driven by [Polars](https://pola.rs/).
+A [Snakemake](https://snakemake.readthedocs.io/) workflow that turns
+[ENCODE](https://www.encodeproject.org/) metadata reports into Parquet tables and derives BPNet /
+ChromBPNet model-annotation tables and download manifests, using [Polars](https://pola.rs/).
 
-## Overview
-
-ENCODE exposes its catalog as tab-separated "report" exports (one per object type: `File`,
-`Experiment`, `Annotation`, and ~110 others). This repo:
-
-1. **Ingests** every report — downloads, cleans, and converts each to a column-normalized Parquet
-   file (`notebooks/report_parquets.py`).
-2. **Derives** per-experiment model annotations — joins the `File`, `Experiment`, and `Annotation`
-   parquets, pivots model output files into one row per experiment, deduplicates to the oldest
-   annotation, and emits TSV/Parquet tables plus aria2c download manifests for any model files not
-   yet present on disk (`notebooks/annotation_manifests.py`).
+Each run materializes one immutable snapshot under `results/<run_id>/`, alongside a provenance
+table recording the URL, fetch time, byte count, and SHA-256 of every report it pulled.
 
 ## Prerequisites
 
-- Python >= 3.12
-- [uv](https://docs.astral.sh/uv/) for environment and dependency management
-- [`aria2c`](https://aria2.github.io/) — parallel downloader (report download + manifest fetch)
-- [`qsv`](https://github.com/dathere/qsv) — CSV/TSV toolkit used to reformat reports
+- Python >= 3.12 and [uv](https://docs.astral.sh/uv/) (provides the `snakemake` driver)
+- `conda` (rule environments are built from `workflow/envs/env.yaml`)
 
-Python dependencies (`polars[all]`, `python-slugify`, `marimo`) are declared in `pyproject.toml`.
+Everything each rule needs at run time (`polars`, `python-slugify`, `aria2c`, `qsv`, `typst`) comes
+from the conda environment, so nothing has to be on `PATH` beforehand.
 
 ```sh
 uv sync
 ```
 
-## Usage
-
-The two notebooks form a sequence — run the ingestion notebook first, since the annotation notebook
-reads the Parquet files it produces.
+## Running
 
 ```sh
-# 1. Download ENCODE reports -> resources/reports, convert -> resources/parquets
-uv run marimo edit notebooks/report_parquets.py
-
-# 2. Build BPNet / ChromBPNet annotation tables + manifests -> output/
-uv run marimo edit notebooks/annotation_manifests.py
+cp config/config.yaml.template config/config.yaml   # then set run_id
+uv run snakemake --profile profiles/local           # local
+uv run snakemake --profile profiles/slurm           # SLURM
+uv run snakemake --profile profiles/local -n -p     # dry run
+uv run snakemake --report report.html               # collect report() outputs
+uv run pytest                                       # unit tests
 ```
 
-Use `uv run marimo run <notebook>` for a read-only app, or `uv run <notebook>` to execute it as a
-plain script.
+`run_id` is the snapshot date and names the output directory. Bump it for a fresh pull; previous
+runs are left untouched, so old snapshots need no archiving ritual.
 
-### 1. Report ingestion — `report_parquets.py`
+## Targets
 
-Reads the report URLs in `resources/encode-full-report-urls.txt` and, behind a run button:
+The default target builds the model-annotation deliverable, which needs only the `annotation`,
+`experiment`, and `file` reports. The other 111 are opt-in:
 
-- Downloads each report with `aria2c` into `resources/reports/`. ENCODE names downloads
-  `{type}_report_{date}.tsv` via `Content-Disposition`.
-- Cleans each file: strips the leading metadata line, reformats with `qsv fmt`, removes the date
-  suffix from the name, deletes the raw download, and drops a `.<YYYY-MM-DD>` sentinel recording the
-  download date.
-- Converts each `{type}_report.tsv` to `resources/parquets/{type}_report.parquet` with Polars,
-  normalizing column names to `snake_case` with `python-slugify`.
-
-A summary table reports row/column counts and per-file status.
-
-> [!NOTE]
-> The download is gated behind a button because the full set is large (the `file_report` alone is
-> several GB). `aria2c --continue` resumes partial downloads across runs.
-
-### 2. Annotation tables — `annotation_manifests.py`
-
-Consumes `resources/parquets/{file,experiment,annotation}_report.parquet` and produces, for both
-the BPNet and ChromBPNet annotation types:
-
-- `output/{BPNet,ChromBPNet}-model-annotations.tsv` and `.parquet` — one row per experiment with
-  human-readable columns (accessions, biosample, assembly, and the local paths of each model output
-  file).
-- `output/{BPNet,ChromBPNet}-model-annotations.manifest` — an aria2c input file listing any model
-  files not found on the local filesystem, so they can be fetched from ENCODE.
-
-> [!IMPORTANT]
-> The local model directories are hard-coded near the top of the notebook
-> (`CHROMBPNET_DIR`, `BPNET_DIR`). Adjust them to match your environment before running.
-
-## Project structure
-
-```
-notebooks/
-  report_parquets.py        # ENCODE reports -> cleaned TSV + Parquet
-  annotation_manifests.py   # Parquets -> BPNet/ChromBPNet tables + manifests
-resources/                  # input URLs, downloaded reports, parquets (gitignored)
-output/                     # derived annotation tables + manifests (gitignored)
-pyproject.toml              # dependencies
+```sh
+uv run snakemake --profile profiles/local                          # 3 reports
+uv run snakemake --profile profiles/local --config fetch=all       # all 114
+uv run snakemake --profile profiles/local all_reports              # Parquets only
 ```
 
-> [!NOTE]
-> `resources/` and `output/` hold generated data and are gitignored. Only the notebooks and project
-> configuration are tracked.
+## Pipeline
+
+```
+config/reports.tsv        report_id + URL, one row per ENCODE object type
+      |
+      v
+fetch_report              aria2c -> results/<run_id>/reports/<report>.raw.tsv
+clean_report              strip banner line, qsv fmt -> <report>.tsv
+report_parquet            snake_case columns -> parquets/<report>.parquet
+      |
+      v
+model_annotations         per model: .tsv, .parquet, .manifest
+tarball_manifest          both models' metadata blocks, stacked
+provenance                url, fetched_at, bytes, sha256, rows, columns
+summary_card              headline numbers, rendered with Typst
+```
+
+Outputs land in `results/<run_id>/`:
+
+| Path | Contents |
+| --- | --- |
+| `reports/<report>.raw.tsv` | untouched ENCODE bytes, kept so a cleaning change costs no re-download |
+| `reports/<report>.tsv` | banner stripped, reformatted |
+| `parquets/<report>.parquet` | `snake_case` columns |
+| `annotations/<model>-model-annotations.{tsv,parquet}` | one row per experiment |
+| `annotations/<model>-model-annotations.manifest` | aria2c input for model files missing locally |
+| `report/tarball_manifest.tsv` | both models' first 13 metadata columns |
+| `report/provenance.tsv` | what was fetched, when, and how big |
+| `report/summary.png` | headline numbers for the snapshot |
+
+## Configuration
+
+`config/config.yaml` holds everything environment-specific.
+
+- **`run_id`** names the snapshot directory.
+- **`fetch`** lists the reports to materialize, or `all`.
+- **`model_dirs`** points at local model-file storage; the manifest lists whatever is missing there.
+  These were hard-coded in the old notebook and must be adjusted per machine.
+- **`models`** gives each model its `annotation_types` and the redundant file formats to exclude.
+  ProCapNet annotations ship inside the ChromBPNet table.
+- **`annotation_inputs`** overrides the Parquets feeding the annotation step. Leave it empty to use
+  the current run's own output; point it at another vintage to rebuild the tables from older data
+  without editing code.
+
+## Notes
+
+- `config/reports.tsv` is committed, so the exact field set requested from ENCODE is version
+  controlled. ENCODE's published URL list contains a duplicate entry
+  (`ScrnaSeqCountsSummaryQualityMetric`); the sheet is deduplicated and the workflow rejects
+  repeated `report_id`s rather than letting two jobs race on one output.
+- Report ids cannot be derived reliably from the URL's `type=` parameter: `IDRQualityMetric` is
+  served as `idr_quality_metric`. They are therefore stored explicitly in the sheet.
+- Column names are normalized with `%` and `#` spelled out before slugifying. Plain slugify drops
+  both, collapsing `% of chimeric reads` and `# of chimeric reads` onto one name; three reports
+  (`document`, `samtools_flagstats_quality_metric`, `star_quality_metric`) previously failed to
+  convert for this reason and were silently skipped.
+- `notebooks/annotation_manifests.py` is superseded by `workflow/scripts/model_annotations.py` and
+  is kept only for interactive inspection. It can be deleted once the workflow has replaced it in
+  practice.

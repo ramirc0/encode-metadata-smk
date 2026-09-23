@@ -1,0 +1,28 @@
+# Local execution.
+software-deployment-method:
+  - conda
+conda-prefix: .conda
+
+cores: 16
+printshellcmds: true
+rerun-incomplete: true
+keep-going: true
+show-failed-logs: true
+retries: 1
+benchmark-extended: true
+
+resources:                  # cap concurrent hits on the ENCODE API
+  encode_api: 2
+
+default-resources:          # fallback for trivial rules
+  mem_mb: 2000
+  runtime: 30
+
+set-threads:
+  model_annotations: 4
+
+set-resources:              # tune from benchmarks/ TSVs after a real run
+  fetch_report: {mem_mb: 1000, runtime: 120}
+  clean_report: {mem_mb: 2000, runtime: 60}
+  report_parquet: {mem_mb: 32000, runtime: 60}
+  model_annotations: {mem_mb: 32000, runtime: 60}

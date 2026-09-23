@@ -13,4 +13,10 @@ dependencies = [
 dev = [
     "marimo>=0.23.9",
     "quak>=0.3.5",
+    "pytest>=8.0",
+    "snakemake>=9.0",
+    "snakemake-executor-plugin-slurm>=1.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
