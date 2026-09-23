@@ -613,7 +613,7 @@ wheels = [
 ]
 
 [[package]]
-name = "encode-metadata"
+name = "encode-metadata-smk"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

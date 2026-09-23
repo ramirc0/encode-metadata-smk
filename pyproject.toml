@@ -1,7 +1,7 @@
 [project]
-name = "encode-metadata"
+name = "encode-metadata-smk"
 version = "0.1.0"
-description = "Add your description here"
+description = "Snakemake workflow turning ENCODE metadata reports into BPNet / ChromBPNet annotation tables"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
