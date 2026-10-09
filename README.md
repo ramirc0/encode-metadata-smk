@@ -9,46 +9,53 @@ table recording the URL, fetch time, byte count, and SHA-256 of every report it 
 
 ## Prerequisites
 
-- Python >= 3.12 and [uv](https://docs.astral.sh/uv/) (provides the `snakemake` driver)
-- `conda` (rule environments are built from `workflow/envs/env.yaml`)
-
-Everything each rule needs at run time (`polars`, `python-slugify`, `aria2c`, `qsv`, `typst`) comes
-from the conda environment, so nothing has to be on `PATH` beforehand.
-
-```sh
-uv sync
-```
+[pixi](https://pixi.sh/) on `PATH`. Nothing else has to be installed beforehand.
 
 ## Running
 
 ```sh
 cp config/config.yaml.template config/config.yaml   # then set run_id
-uv run snakemake --profile profiles/local           # local
-uv run snakemake --profile profiles/slurm           # SLURM
-uv run snakemake --profile profiles/local -n -p     # dry run
-uv run pytest                                       # unit tests
+pixi shell                                          # launcher env
+snakemake --profile profiles/local                  # local
+snakemake --profile profiles/slurm                  # SLURM
+snakemake --profile profiles/local -n -p            # dry run
+pixi run test                                       # unit tests
+pixi run lint                                       # ruff check, ruff format --check, numpydoc lint
 ```
 
-`run_id` is the snapshot date and names the output directory. Bump it for a fresh pull; previous
+`run_id` is the snapshot date and names the output directory. Bump it for a fresh pull. Previous
 runs are left untouched, so old snapshots need no archiving ritual.
 
 ## Targets
 
 The default target fetches every report in `fetch`, converts each to Parquet, and writes the
-provenance table and summary card. `fetch: all` pulls all 114 reports; narrow it for a quick run:
+provenance table and summary card. `fetch: all` pulls all 114 reports. Narrow it for a quick run:
 
 ```sh
-uv run snakemake --profile profiles/local --config fetch='[lab,award]'
+snakemake --profile profiles/local --config fetch='[lab,award]'
 ```
+
+## Environment
+
+The launcher env (`pixi.toml` at the root) has Snakemake main, the pixi software-deployment plugin
+and the SLURM executor plugins. It also defines the `lint` and `test` envs. Every tool a rule needs
+(`polars`, `python-slugify`, `aria2c`, `qsv`, `typst`) comes from a second pixi workspace,
+`workflow/envs/`. Its `pixi.lock` pins every package. Jobs install the env on first use.
+
+Add a rule dependency with `pixi add <pkg>` in `workflow/envs/`. After a hand edit, run `pixi lock`
+there (rules use `locked=True`). Any change to the manifest or lock reruns every rule, including
+`fetch_report`. Rerunning an existing `run_id` after such a change downloads its reports again
+and overwrites that snapshot. Pass `--rerun-triggers mtime` to keep it. Moving the workdir has the
+same effect, because the env hash includes the workspace's absolute path.
 
 ## Pipeline
 
 `docs/pipeline-rulegraph.png` shows the rules and `docs/pipeline-dag.png` the concrete jobs of a
-three-report run. Both are rendered from Snakemake's own DAG; regenerate them after changing rules:
+three-report run. Both are rendered from Snakemake's own DAG. Regenerate them after changing rules:
 
 ```sh
-uv run snakemake --profile profiles/local --rulegraph -q | dot -Tpng -o docs/pipeline-rulegraph.png
-uv run snakemake --profile profiles/local --dag -q --config 'fetch=[annotation,experiment,file]' \
+snakemake --profile profiles/local --rulegraph -q | dot -Tpng -o docs/pipeline-rulegraph.png
+snakemake --profile profiles/local --dag -q --config 'fetch=[annotation,experiment,file]' \
     | dot -Tpng -o docs/pipeline-dag.png
 ```
 
