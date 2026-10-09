@@ -10,30 +10,29 @@ slurm-efficiency-report: true
 slurm-efficiency-report-path: logs/efficiency
 slurm-efficiency-threshold: 0.8
 
-resources:                  # cap concurrent hits on the ENCODE API
+resources: # cap concurrent hits on the ENCODE API
   encode_api: 4
 
 default-resources:
-  slurm_account: youraccount
+  slurm_account: ramirezc
   slurm_partition: 12hours
   runtime: 60m
   mem_mb: 4000
   # slurm_extra: "--exclude=node1,node2"   # e.g. nodes missing a shared mount
 
 set-threads:
-  clean_report: 1
   report_parquet: 4
 
-set-resources:              # scale mem/runtime by input size and retry attempt
+set-resources:
   fetch_report:
     mem_mb: 1000
     runtime: 180m
   clean_report:
-    mem_mb: max(2000, 0.5 * input.size_mb) * attempt
-    runtime: min(240, max(20, 0.05 * input.size_mb) * attempt)
+    mem_mb: 2000
+    runtime: 60m
   report_parquet:
-    mem_mb: max(8000, 12 * input.size_mb) * attempt
-    runtime: min(240, max(20, 0.05 * input.size_mb) * attempt)
+    mem_mb: 32000
+    runtime: 60m
 
 rerun-incomplete: true
 keep-going: true
