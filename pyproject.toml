@@ -1,3 +1,7 @@
 # Tool config only. The pixi workspaces live in the pixi.toml files.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+# conftest.py puts the scripts on sys.path, so tests import them as first-party.
+[tool.ruff]
+src = ["workflow/scripts"]

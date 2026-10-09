@@ -40,8 +40,8 @@ def test_deduplicate_leaves_unique_names_alone():
 @pytest.mark.parametrize(
     "headers",
     [
-        ["ID", "@id"],                                    # document_report
-        ["% of chimeric reads", "# of chimeric reads"],   # star_quality_metric
+        ["ID", "@id"],  # document_report
+        ["% of chimeric reads", "# of chimeric reads"],  # star_quality_metric
     ],
 )
 def test_colliding_reports_now_convert(tmp_path, headers):
