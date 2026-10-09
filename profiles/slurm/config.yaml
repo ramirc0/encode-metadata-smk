@@ -25,15 +25,15 @@ default-resources:
 set-threads:
   report_parquet: 4
 
-set-resources:
+set-resources:              # tune from benchmarks/ TSVs after a real run
   fetch_report:
-    mem_mb: 1000
+    mem_mb: 1000 * attempt
     runtime: 180m
   clean_report:
-    mem_mb: 2000
+    mem_mb: 2000 * attempt
     runtime: 60m
   report_parquet:
-    mem_mb: 32000
+    mem_mb: 32000 * attempt
     runtime: 60m
 
 rerun-incomplete: true
