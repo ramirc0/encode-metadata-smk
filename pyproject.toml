@@ -1,20 +1,3 @@
-[project]
-name = "encode-metadata-smk"
-version = "0.1.0"
-description = "Snakemake workflow fetching ENCODE metadata reports into Parquet"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "polars",
-    "python-slugify>=8.0.4",
-]
-
-[dependency-groups]
-dev = [
-    "pytest>=8.0",
-    "snakemake>=9.0",
-    "snakemake-executor-plugin-slurm>=1.0",
-]
-
+# Tool config only. The pixi workspaces live in the pixi.toml files.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
