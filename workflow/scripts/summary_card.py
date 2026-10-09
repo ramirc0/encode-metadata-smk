@@ -8,7 +8,7 @@ import argparse
 
 import polars as pl
 
-# Fixed width so `1fr` and `100%` have something to resolve against; on an
+# Fixed width so `1fr` and `100%` have something to resolve against. On an
 # auto-width page they collapse.
 TEMPLATE = """\
 #set page(width: auto, height: auto, margin: 10pt, fill: white)

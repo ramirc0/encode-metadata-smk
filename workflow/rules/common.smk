@@ -35,7 +35,7 @@ _rows = pl.read_csv(
 _ids = _rows.get_column("report_id").to_list()
 _duplicates = sorted({r for r in _ids if _ids.count(r) > 1})
 if _duplicates:
-    # ENCODE's URL list ships byte-identical duplicate lines; two jobs would
+    # ENCODE's URL list ships byte-identical duplicate lines. Two jobs would
     # otherwise race on one output path.
     raise WorkflowError(f"Duplicate report_id in {_SHEET}: {', '.join(_duplicates)}")
 
