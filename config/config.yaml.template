@@ -3,29 +3,6 @@ run_id: "2026-09-23"     # ENCODE snapshot date; outputs go to results/<run_id>/
 conda_env: workflow/envs/env.yaml
 reports: config/reports.tsv
 
-# Reports this run materializes and records in provenance.tsv. The three below
-# are what the annotation tables need; set to `all` for every report in the sheet.
-fetch: [annotation, experiment, file]
-
-# Parquets feeding the annotation step. Omit a key to use this run's own output
-# under results/<run_id>/parquets/. Point them elsewhere to rebuild the tables
-# from a different vintage without editing code.
-annotation_inputs: {}
-
-# Local storage for model files; the manifest lists whatever is missing here.
-model_dirs:
-  BPNet: /data/zusers/ramirezc/all_bpnet_files
-  ChromBPNet: /data/zusers/ramirezc/all_chrombpnet_files
-
-models:
-  BPNet:
-    annotation_types: [BPNet-model]
-    exclude:
-      - {output_type: predicted signal profile, suffix: .bigWig}
-      - {output_type: counts sequence contribution scores, suffix: .tar.gz}
-      - {output_type: profile sequence contribution scores, suffix: .tar.gz}
-  ChromBPNet:
-    # ProCapNet annotations ship in the ChromBPNet table.
-    annotation_types: [ChromBPNet-model, ProCapNet]
-    exclude:
-      - {output_type: predicted signal profile, suffix: .bigWig}
+# Reports this run materializes and records in provenance.tsv: `all`, or a
+# list of report_ids from the sheet, e.g. [annotation, experiment, file].
+fetch: all

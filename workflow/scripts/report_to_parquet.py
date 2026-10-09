@@ -22,12 +22,6 @@ def build_parser():
     p = argparse.ArgumentParser(description="Convert a report TSV to Parquet.")
     p.add_argument("-i", "--input", required=True, help="Cleaned report TSV.")
     p.add_argument("-o", "--output", required=True, help="Parquet file to write.")
-    p.add_argument(
-        "--infer-schema-length",
-        type=int,
-        default=2**21,
-        help="Rows Polars scans to infer column types.",
-    )
     return p
 
 
@@ -54,7 +48,7 @@ def main(argv=None):
     df = pl.read_csv(
         args.input,
         separator="\t",
-        infer_schema_length=args.infer_schema_length,
+        infer_schema_length=2**21,
     )
 
     normalized = [normalize(c) for c in df.columns]

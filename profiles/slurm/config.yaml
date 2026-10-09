@@ -23,7 +23,6 @@ default-resources:
 set-threads:
   clean_report: 1
   report_parquet: 4
-  model_annotations: 4
 
 set-resources:              # scale mem/runtime by input size and retry attempt
   fetch_report:
@@ -35,9 +34,6 @@ set-resources:              # scale mem/runtime by input size and retry attempt
   report_parquet:
     mem_mb: max(8000, 12 * input.size_mb) * attempt
     runtime: min(240, max(20, 0.05 * input.size_mb) * attempt)
-  model_annotations:
-    mem_mb: max(16000, 8 * input.size_mb) * attempt
-    runtime: 120m
 
 rerun-incomplete: true
 keep-going: true

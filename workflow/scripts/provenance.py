@@ -1,8 +1,7 @@
 """Record what was fetched: url, fetch time, bytes, checksum, and shape.
 
-The notebooks recorded the snapshot date as an empty `.YYYY-MM-DD` sentinel file.
-This writes a real table instead, so a derived output can be traced back to the
-exact ENCODE bytes it came from.
+One row per report, so a derived output can be traced back to the exact ENCODE
+bytes it came from.
 """
 
 import argparse
@@ -51,22 +50,19 @@ def main(argv=None):
     for raw in sorted(args.raw):
         report_id = Path(raw).name.removesuffix(".raw.tsv")
         stat = Path(raw).stat()
-        parquet = parquets.get(report_id)
-        shape = pl.read_parquet_schema(parquet) if parquet else {}
+        parquet = pl.scan_parquet(parquets[report_id])
         rows.append(
             {
                 "run_id": args.run_id,
                 "report_id": report_id,
-                "url": urls.get(report_id),
+                "url": urls[report_id],
                 "fetched_at": datetime.fromtimestamp(
                     stat.st_mtime, timezone.utc
                 ).isoformat(),
                 "bytes": stat.st_size,
                 "sha256": sha256(raw),
-                "rows": pl.scan_parquet(parquet).select(pl.len()).collect().item()
-                if parquet
-                else None,
-                "columns": len(shape),
+                "rows": parquet.select(pl.len()).collect().item(),
+                "columns": parquet.collect_schema().len(),
             }
         )
 

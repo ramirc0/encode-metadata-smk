@@ -10,8 +10,6 @@ config/*.tsv
 
 scratch
 resources
-output
-_archive
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

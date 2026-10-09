@@ -1,18 +1,16 @@
 [project]
 name = "encode-metadata-smk"
 version = "0.1.0"
-description = "Snakemake workflow turning ENCODE metadata reports into BPNet / ChromBPNet annotation tables"
+description = "Snakemake workflow fetching ENCODE metadata reports into Parquet"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "polars[all]",
+    "polars",
     "python-slugify>=8.0.4",
 ]
 
 [dependency-groups]
 dev = [
-    "marimo>=0.23.9",
-    "quak>=0.3.5",
     "pytest>=8.0",
     "snakemake>=9.0",
     "snakemake-executor-plugin-slurm>=1.0",
