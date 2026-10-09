@@ -42,6 +42,9 @@ directories.
 
 `fetch` selects the reports: `all` (114) or a list of `report_id`s.
 
+`netrc` is validated at parse time (exists, mode 600, has an `www.encodeproject.org` entry) because
+aria2c silently falls back to anonymous otherwise, and anonymous reports omit unreleased objects.
+
 ## Invariants
 
 - **`report_to_parquet.normalize()`** spells out `%` as `pct` and `#` as `num` before slugifying,

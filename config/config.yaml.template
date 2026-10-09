@@ -6,3 +6,8 @@ reports: config/reports.tsv
 # Reports this run materializes and records in provenance.tsv: `all`, or a
 # list of report_ids from the sheet, e.g. [annotation, experiment, file].
 fetch: all
+
+# ENCODE credentials for aria2c: true for ~/.netrc, a path, or false for
+# anonymous. Anonymous reports omit unreleased objects. The file needs a
+# `machine www.encodeproject.org` entry and mode 600.
+netrc: true

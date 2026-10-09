@@ -8,6 +8,7 @@ rule fetch_report:
         f"{OUTDIR}/reports/{{report}}.raw.tsv",
     params:
         url=lambda w: URL_OF[w.report],
+        netrc=NETRC_FLAGS,
     log:
         f"{LOGDIR}/fetch_report/{{report}}.txt",
     benchmark:
@@ -23,6 +24,7 @@ rule fetch_report:
         aria2c {params.url:q} \
             --dir {OUTDIR:q}/reports \
             --out {wildcards.report:q}.raw.tsv \
+            {params.netrc:q} \
             --continue=true \
             --max-connection-per-server=4 \
             --split=4 \

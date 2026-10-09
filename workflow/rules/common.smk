@@ -1,5 +1,6 @@
 # Config, report sheet, path constants, and shared helpers.
 
+import netrc
 from pathlib import Path
 
 import polars as pl
@@ -62,6 +63,36 @@ def _fetch_list():
 
 
 FETCH = _fetch_list()
+
+
+def _netrc_flags():
+    """config['netrc'] -> aria2c credential flags (interpolate with :q).
+
+    false fetches anonymously; true reads ~/.netrc; a string is a netrc path.
+    Checked at parse time because aria2c falls back to anonymous with only a
+    NOTICE when the file is unusable.
+    """
+    setting = config["netrc"]
+    # --config netrc=... arrives as a string, not a YAML bool.
+    toggle = str(setting).lower()
+    if toggle == "false":
+        return ["--no-netrc=true"]
+    path = Path("~/.netrc" if toggle == "true" else setting).expanduser()
+    if not path.is_file():
+        raise WorkflowError(f"config['netrc']: {path} not found.")
+    if path.stat().st_mode & 0o077:
+        raise WorkflowError(
+            f"config['netrc']: aria2c ignores {path} unless it is mode 600; "
+            f"run chmod 600 {path}"
+        )
+    if netrc.netrc(path).authenticators("www.encodeproject.org") is None:
+        raise WorkflowError(
+            f"config['netrc']: {path} has no machine www.encodeproject.org entry."
+        )
+    return [f"--netrc-path={path}"]
+
+
+NETRC_FLAGS = _netrc_flags()
 
 
 wildcard_constraints:

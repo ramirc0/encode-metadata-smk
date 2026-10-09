@@ -82,6 +82,10 @@ Outputs land in `results/<run_id>/`:
 
 - **`run_id`** names the snapshot directory.
 - **`fetch`** lists the reports to materialize, or `all`.
+- **`netrc`** supplies ENCODE credentials: `true` for `~/.netrc`, a path, or `false` for anonymous.
+  Anonymous reports omit unreleased objects. The file must be mode 600 with a
+  `machine www.encodeproject.org` entry; the workflow refuses to start otherwise, since aria2c
+  would silently fall back to anonymous.
 
 ## Notes
 
