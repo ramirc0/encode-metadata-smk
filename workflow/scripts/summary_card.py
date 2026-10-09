@@ -37,7 +37,13 @@ TEMPLATE = """\
 
 
 def build_parser():
-    """Return the argument parser for summary_card.py."""
+    """Build the summary_card.py command-line parser.
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        Parser for the summary_card.py flags.
+    """
     p = argparse.ArgumentParser(description="Render snapshot headline numbers.")
     p.add_argument("--provenance", required=True, help="provenance.tsv.")
     p.add_argument("--run-id", required=True, help="Snapshot id.")
@@ -46,7 +52,18 @@ def build_parser():
 
 
 def human_bytes(n):
-    """Byte count -> a short human-readable string."""
+    """Format a byte count with a binary unit.
+
+    Parameters
+    ----------
+    n : int
+        Byte count.
+
+    Returns
+    -------
+    str
+        Count scaled to B, KB, MB, GB, or TB.
+    """
     size = float(n)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size < 1024 or unit == "TB":
@@ -55,7 +72,18 @@ def human_bytes(n):
 
 
 def human_count(n):
-    """Row count -> a short human-readable string."""
+    """Format a row count with a K or M suffix.
+
+    Parameters
+    ----------
+    n : int
+        Row count.
+
+    Returns
+    -------
+    str
+        Count as is below 1,000, else scaled to K or M with one decimal.
+    """
     if n >= 1_000_000:
         return f"{n / 1_000_000:.1f} M"
     if n >= 1_000:
@@ -64,7 +92,20 @@ def human_count(n):
 
 
 def _cell(value, label):
-    """One headline number stacked over its caption."""
+    """Stack one headline number over its caption.
+
+    Parameters
+    ----------
+    value : int or str
+        Headline number, already formatted.
+    label : str
+        Caption under the number.
+
+    Returns
+    -------
+    str
+        Typst content block for one grid cell.
+    """
     return (
         f'[#text(size: 20pt, weight: "bold")[{value}] \\ '
         f"#text(size: 8.5pt, fill: luma(40%))[{label}]]"
@@ -72,7 +113,13 @@ def _cell(value, label):
 
 
 def main(argv=None):
-    """Read the run's outputs and write the Typst card source."""
+    """Read the provenance table and write the Typst card source.
+
+    Parameters
+    ----------
+    argv : list of str, optional
+        Command-line arguments. Defaults to `sys.argv[1:]`.
+    """
     args = build_parser().parse_args(argv)
 
     prov = pl.read_csv(args.provenance, separator="\t")

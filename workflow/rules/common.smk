@@ -49,7 +49,18 @@ if not REPORTS:
 
 
 def _fetch_list():
-    """config['fetch'] -> the report ids this run materializes."""
+    """Return the report IDs this run materializes.
+
+    Returns
+    -------
+    list of str
+        Every sheet report when `config["fetch"]` is `all`, else the listed IDs.
+
+    Raises
+    ------
+    WorkflowError
+        If `config["fetch"]` names a report absent from the sheet.
+    """
     requested = config["fetch"]
     if requested == "all":
         return REPORTS
@@ -66,11 +77,22 @@ FETCH = _fetch_list()
 
 
 def _netrc_flags():
-    """config['netrc'] -> aria2c credential flags (interpolate with :q).
+    """Return the aria2c credential flags from `config["netrc"]`.
 
-    false fetches anonymously; true reads ~/.netrc; a string is a netrc path.
-    Checked at parse time because aria2c falls back to anonymous with only a
-    NOTICE when the file is unusable.
+    `false` fetches anonymously. `true` reads `~/.netrc`. A string is a netrc
+    path. The file is checked at parse time because aria2c falls back to
+    anonymous with only a NOTICE when it is unusable.
+
+    Returns
+    -------
+    list of str
+        Flag tokens. Interpolate them with `:q`.
+
+    Raises
+    ------
+    WorkflowError
+        If the file is missing, not mode 600, or has no
+        `www.encodeproject.org` entry.
     """
     setting = config["netrc"]
     # --config netrc=... arrives as a string, not a YAML bool.

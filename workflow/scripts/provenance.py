@@ -15,7 +15,13 @@ _CHUNK = 1 << 20
 
 
 def build_parser():
-    """Return the argument parser for provenance.py."""
+    """Build the provenance.py command-line parser.
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        Parser for the provenance.py flags.
+    """
     p = argparse.ArgumentParser(description="Summarize the fetched reports.")
     p.add_argument("--raw", required=True, nargs="+", help="Raw report TSVs.")
     p.add_argument("--parquet", required=True, nargs="+", help="Converted Parquets.")
@@ -26,7 +32,18 @@ def build_parser():
 
 
 def sha256(path):
-    """Hex digest of a file, read in chunks."""
+    """Hash a file in chunks.
+
+    Parameters
+    ----------
+    path : str
+        File to hash.
+
+    Returns
+    -------
+    str
+        Hex SHA-256 digest of the file's bytes.
+    """
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
         for block in iter(lambda: handle.read(_CHUNK), b""):
@@ -35,7 +52,13 @@ def sha256(path):
 
 
 def main(argv=None):
-    """Join fetched bytes to converted shapes and write one row per report."""
+    """Join fetched bytes to converted shapes and write one row per report.
+
+    Parameters
+    ----------
+    argv : list of str, optional
+        Command-line arguments. Defaults to `sys.argv[1:]`.
+    """
     args = build_parser().parse_args(argv)
 
     urls = {

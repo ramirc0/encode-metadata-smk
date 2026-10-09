@@ -18,7 +18,13 @@ _MARKERS = [("%", " pct "), ("#", " num ")]
 
 
 def build_parser():
-    """Return the argument parser for report_to_parquet.py."""
+    """Build the report_to_parquet.py command-line parser.
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        Parser for the report_to_parquet.py flags.
+    """
     p = argparse.ArgumentParser(description="Convert a report TSV to Parquet.")
     p.add_argument("-i", "--input", required=True, help="Cleaned report TSV.")
     p.add_argument("-o", "--output", required=True, help="Parquet file to write.")
@@ -26,14 +32,36 @@ def build_parser():
 
 
 def normalize(name):
-    """ENCODE header -> snake_case, keeping the %/# distinction."""
+    """Convert an ENCODE header to snake_case, keeping `%` and `#` distinct.
+
+    Parameters
+    ----------
+    name : str
+        Raw ENCODE column header.
+
+    Returns
+    -------
+    str
+        Slugified header with `%` spelled `pct` and `#` spelled `num`.
+    """
     for marker, replacement in _MARKERS:
         name = name.replace(marker, replacement)
     return slugify(name, separator="_")
 
 
 def deduplicate(names):
-    """Suffix repeated names `_2`, `_3`, ... in order; return the new list."""
+    """Suffix repeated names `_2`, `_3`, ... in order of appearance.
+
+    Parameters
+    ----------
+    names : list of str
+        Column names, possibly repeated.
+
+    Returns
+    -------
+    list of str
+        Names with every repeat after the first suffixed by its count.
+    """
     counts, out = {}, []
     for name in names:
         counts[name] = counts.get(name, 0) + 1
@@ -42,7 +70,13 @@ def deduplicate(names):
 
 
 def main(argv=None):
-    """Read the cleaned TSV, normalize headers, write Parquet."""
+    """Read the cleaned TSV, normalize headers, and write Parquet.
+
+    Parameters
+    ----------
+    argv : list of str, optional
+        Command-line arguments. Defaults to `sys.argv[1:]`.
+    """
     args = build_parser().parse_args(argv)
 
     df = pl.read_csv(
