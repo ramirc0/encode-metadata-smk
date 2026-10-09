@@ -26,7 +26,6 @@ cp config/config.yaml.template config/config.yaml   # then set run_id
 uv run snakemake --profile profiles/local           # local
 uv run snakemake --profile profiles/slurm           # SLURM
 uv run snakemake --profile profiles/local -n -p     # dry run
-uv run snakemake --report report.html               # collect report() outputs
 uv run pytest                                       # unit tests
 ```
 

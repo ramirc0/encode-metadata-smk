@@ -35,11 +35,7 @@ rule summary_card:
         f"{OUTDIR}/report/provenance.tsv",
     output:
         source=f"{OUTDIR}/report/summary.typ",
-        card=report(
-            f"{OUTDIR}/report/summary.png",
-            category="Summary",
-            labels={"card": "snapshot headline numbers"},
-        ),
+        card=f"{OUTDIR}/report/summary.png",
     params:
         run_id=RUN_ID,
     log:
