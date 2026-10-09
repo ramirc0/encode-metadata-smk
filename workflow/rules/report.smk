@@ -15,8 +15,8 @@ rule provenance:
         f"{LOGDIR}/provenance.txt",
     benchmark:
         f"{BENCHDIR}/provenance.tsv",
-    conda:
-        CONDA_ENV
+    software:
+        SOFTWARE_ENV
     shell:
         r"""
         exec &> >(tee {log:q})
@@ -46,8 +46,8 @@ rule summary_card:
         f"{LOGDIR}/summary_card.txt",
     benchmark:
         f"{BENCHDIR}/summary_card.tsv",
-    conda:
-        CONDA_ENV
+    software:
+        SOFTWARE_ENV
     shell:
         r"""
         exec &> >(tee {log:q})

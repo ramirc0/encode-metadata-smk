@@ -16,8 +16,8 @@ OUTDIR = f"{RESULTS}/{RUN_ID}"          # one immutable directory per ENCODE sna
 LOGDIR = f"logs/{RUN_ID}"
 BENCHDIR = f"benchmarks/{RUN_ID}"
 
-# Absolute so conda: resolves the same from any rule file.
-CONDA_ENV = str((Path(workflow.basedir).parent / config["conda_env"]).resolve())
+# The workspace path is relative to the rule file. Every rule file sits in rules/.
+SOFTWARE_ENV = pixi(workspace="../envs", env=config["pixi_env"], locked=True)
 
 
 _SHEET = Path(config["reports"])

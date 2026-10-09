@@ -1,7 +1,9 @@
 # Local execution.
 software-deployment-method:
-  - conda
-conda-prefix: .conda
+  - pixi
+# Snakemake copies every env package here. pixi installs from its own cache.
+# One copy per user instead of one per workdir.
+software-deployment-cache-prefix: ~/.cache/snakemake/software
 
 cores: 16
 printshellcmds: true

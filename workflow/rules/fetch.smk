@@ -15,8 +15,8 @@ rule fetch_report:
         f"{BENCHDIR}/fetch_report/{{report}}.tsv",
     resources:
         encode_api=1,
-    conda:
-        CONDA_ENV
+    software:
+        SOFTWARE_ENV
     shell:
         r"""
         exec &> >(tee {log:q})
@@ -44,8 +44,8 @@ rule clean_report:
         f"{LOGDIR}/clean_report/{{report}}.txt",
     benchmark:
         f"{BENCHDIR}/clean_report/{{report}}.tsv",
-    conda:
-        CONDA_ENV
+    software:
+        SOFTWARE_ENV
     shell:
         r"""
         exec &> >(tee {log:q})
@@ -67,8 +67,8 @@ rule report_parquet:
         f"{LOGDIR}/report_parquet/{{report}}.txt",
     benchmark:
         f"{BENCHDIR}/report_parquet/{{report}}.tsv",
-    conda:
-        CONDA_ENV
+    software:
+        SOFTWARE_ENV
     shell:
         r"""
         exec &> >(tee {log:q})
