@@ -5,3 +5,16 @@ testpaths = ["tests"]
 # conftest.py puts the scripts on sys.path, so tests import them as first-party.
 [tool.ruff]
 src = ["workflow/scripts"]
+
+[tool.ruff.lint]
+extend-select = ["D"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+# "all" minus the codes after it: extended summary, examples, see also.
+[tool.numpydoc_validation]
+checks = ["all", "ES01", "EX01", "SA01"]
